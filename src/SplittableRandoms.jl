@@ -15,7 +15,7 @@ mutable struct SplittableRandom <: AbstractRNG
     seed::UInt64
     gamma::UInt64
 end
-
+SplittableRandom(seed::UInt64) = SplittableRandom(seed, GOLDEN_GAMMA)
 function SplittableRandom()
     s = rand(RandomDevice(), UInt64) # similar to https://github.com/JuliaLang/julia/blob/bd8dbc388c7b89f68838ca554ed7ba91740cce75/stdlib/Random/src/Xoshiro.jl#L143
     g = mix_gamma(s+GOLDEN_GAMMA)
