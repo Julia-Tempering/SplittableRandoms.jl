@@ -9,19 +9,24 @@ export SplittableRandom, split
 # constructors
 ###############################################################################
 
-const GOLDEN_GAMMA = UInt64(0x9e3779b97f4a7c15)
+const GOLDEN_GAMMA = 0x9e3779b97f4a7c15
 
 mutable struct SplittableRandom <: AbstractRNG
     seed::UInt64
     gamma::UInt64
 end
 SplittableRandom(seed::UInt64) = SplittableRandom(seed, GOLDEN_GAMMA)
+function SplittableRandom(seed::Integer) # seed with integer. strategy taken from: https://github.com/JuliaRandom/RandomNumbers.jl/blob/20992caa581473dc805f9236760c35d96fbc4f29/src/Xorshifts/splitmix64.jl#L34
+    sr = SplittableRandom(seed % UInt64) # initialize an SR by bitcasting the integer to UInt64
+    sr.seed = rand(sr, UInt64)           # mix the seed and return
+    return sr
+end
 function SplittableRandom()
-    s = rand(RandomDevice(), UInt64) # similar to https://github.com/JuliaLang/julia/blob/bd8dbc388c7b89f68838ca554ed7ba91740cce75/stdlib/Random/src/Xoshiro.jl#L143
-    g = mix_gamma(s+GOLDEN_GAMMA)
-    SplittableRandom(s,g)
+    s = rand(RandomDevice(), UInt64)     # gen a seed using OS-provided entropy
+    SplittableRandom(s)                  # no need to mix64 since RD produces good randomness. similar to https://github.com/JuliaLang/julia/blob/bd8dbc388c7b89f68838ca554ed7ba91740cce75/stdlib/Random/src/Xoshiro.jl#L143
 end
 
+# split an SR to create a new, uncorrelated SR 
 function split(sr::SplittableRandom)
     SplittableRandom( rand(sr, UInt64), mix_gamma(next_seed!(sr)) )
 end
@@ -40,13 +45,12 @@ function mix_gamma(z::UInt64)
     return (n < 24) ? xor(z, 0xaaaaaaaaaaaaaaaa) : z
 end
 
-function mix64(sr::SplittableRandom, z::UInt64)
-    s = sr.seed
-    z = xor(s, s >> 30) * 0xbf58476d1ce4e5b9
+function mix64(z::UInt64)
+    z = xor(z, z >> 30) * 0xbf58476d1ce4e5b9
     z = xor(z, z >> 27) * 0x94d049bb133111eb
     xor(z, z >> 31)
 end
-Base.rand(sr::SplittableRandom, ::Type{UInt64}) = mix64(sr, next_seed!(sr))
+Base.rand(sr::SplittableRandom, ::Type{UInt64}) = mix64(next_seed!(sr))
 
 # SplittableRandom generates UInt64 natively
 Random.rng_native_52(::SplittableRandom) = UInt64
