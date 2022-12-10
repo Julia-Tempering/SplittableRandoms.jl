@@ -2,7 +2,14 @@
 
 A minimal Julia translation of Java SplittableRandoms.
 
-### Comparison to other Julian SplitMix64 implementations
+## Installation
+
+In Julia, execute
+```julia
+]add SplittableRandoms
+```
+
+## Comparison to other Julian SplitMix64 implementations
 
 The package [RandomNumbers](https://github.com/JuliaRandom/RandomNumbers.jl)
 exposes a [SplitMix64](https://github.com/JuliaRandom/RandomNumbers.jl/blob/master/src/Xorshifts/splitmix64.jl)
