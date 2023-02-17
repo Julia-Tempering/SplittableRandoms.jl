@@ -1,7 +1,7 @@
 module SplittableRandoms
 
 using Base: rand
-using Random: Random, AbstractRNG, RandomDevice, rng_native_52
+using Random: Random, AbstractRNG, RandomDevice, rng_native_52, SamplerUnion
 
 export SplittableRandom, split
 
@@ -62,5 +62,15 @@ Random.rng_native_52(::SplittableRandom) = UInt64
 #   @ Random ~/opt/julia/usr/share/julia/stdlib/v1.7/Random/src/generation.jl:114
 # [4] rng_native_52(::SplittableRandom) 
 #   @ here
+
+# RNG for several bit types
+# Uses this approach: https://github.com/JuliaLang/julia/blob/793eaa3147239feeccf14a57dfb099411ed3bafe/stdlib/Random/src/Xoshiro.jl#L167
+# but with the lower instead of the upper bits
+@inline function Base.rand(
+    rng::SplittableRandom,
+    T::Random.SamplerUnion(Bool, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64)
+    )
+    rand(rng, UInt64) % T[]
+end
 
 end # module
