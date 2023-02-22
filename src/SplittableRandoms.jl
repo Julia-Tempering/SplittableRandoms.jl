@@ -68,7 +68,7 @@ Random.rng_native_52(::SplittableRandom) = UInt64
 # but with the lower instead of the upper bits
 @inline function Base.rand(
     rng::SplittableRandom,
-    T::Random.SamplerUnion(Bool, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64)
+    T::Random.SamplerUnion(Bool, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64)
     )
     rand(rng, UInt64) % T[]
 end
